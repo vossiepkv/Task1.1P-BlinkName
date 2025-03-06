@@ -1,65 +1,64 @@
-const int ledPin = BUILTIN_LED;
+#define LED 13  // Built-in LED pin
 
-// Function to blink LED with given ON and OFF duration
-void blink(int onTime, int offTime) {
-  digitalWrite(ledPin, HIGH);
-  delay(onTime);
-  digitalWrite(ledPin, LOW);
-  delay(offTime);
-}
+struct MorseLetter {
+  char letter;
+  const char* code;
+};
 
-// Functions for each letter
-void P() {
-  blink(500, 500);
-  blink(1500, 500);
-  blink(1500, 500);
-  blink(500, 500);
-}
-
-void A() {
-  blink(500, 500);
-  blink(1500, 500);
-}
-
-void T() {
-  blink(1500, 500);
-}
-
-void R() {
-  blink(500, 500);
-  blink(1500, 500);
-  blink(500, 500);
-}
-
-void I() {
-  blink(500, 500);
-  blink(500, 500);
-}
-
-void C() {
-  blink(1500, 500);
-  blink(500, 500);
-  blink(1500, 500);
-  blink(500, 500);
-}
-
-void K() {
-  blink(1500, 500);
-  blink(500, 500);
-  blink(1500, 500);
-}
+// Morse code dictionary
+MorseLetter morseAlphabet[] = {
+  {'A', ".-"},  {'B', "-..."}, {'C', "-.-."}, {'D', "-.."}, {'E', "."},
+  {'F', "..-."}, {'G', "--."}, {'H', "...."}, {'I', ".."}, {'J', ".---"},
+  {'K', "-.-"}, {'L', ".-.."}, {'M', "--"}, {'N', "-."}, {'O', "---"},
+  {'P', ".--."}, {'Q', "--.-"}, {'R', ".-."}, {'S', "..."}, {'T', "-"},
+  {'U', "..-"}, {'V', "...-"}, {'W', ".--"}, {'X', "-..-"}, {'Y', "-.--"},
+  {'Z', "--.."}
+};
 
 void setup() {
-  pinMode(ledPin, OUTPUT);
+  pinMode(LED, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("Enter your name:");
 }
 
 void loop() {
-  P();
-  A();
-  T();
-  R();
-  I();
-  C();
-  K();
-  delay(2000); // Pause before repeating the sequence
+  if (Serial.available()) {
+    String name = Serial.readStringUntil('\n'); // Read input until newline
+    name.toUpperCase(); // Convert to uppercase for Morse lookup
+    Serial.print("Blinking Morse code for: ");
+    Serial.println(name);
+    
+    for (int i = 0; i < name.length(); i++) {
+      if (name[i] >= 'A' && name[i] <= 'Z') {
+        blinkMorse(getMorseCode(name[i])); // Blink Morse code
+        delay(600); // Space between letters
+      }
+    }
+    Serial.println("Done. Enter another name:");
+  }
+}
+
+const char* getMorseCode(char letter) {
+  for (int i = 0; i < 26; i++) {
+    if (morseAlphabet[i].letter == letter) {
+      return morseAlphabet[i].code;
+    }
+  }
+  return ""; // Return empty if not found
+}
+
+void blinkMorse(const char* morse) {
+  while (*morse) {
+    if (*morse == '.') {
+      digitalWrite(LED, HIGH);
+      delay(200);
+      digitalWrite(LED, LOW);
+    } else if (*morse == '-') {
+      digitalWrite(LED, HIGH);
+      delay(600);
+      digitalWrite(LED, LOW);
+    }
+    delay(200); // Pause between dots and dashes
+    morse++;
+  }
 }
